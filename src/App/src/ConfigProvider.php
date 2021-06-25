@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Service\WeatherService;
+use App\Service\WeatherServiceFactory;
+
 /**
  * The configuration provider for the App module
  *
@@ -36,6 +39,7 @@ class ConfigProvider
             ],
             'factories'  => [
                 Handler\HomePageHandler::class => Handler\HomePageHandlerFactory::class,
+                WeatherService::class => WeatherServiceFactory::class,
             ],
         ];
     }
