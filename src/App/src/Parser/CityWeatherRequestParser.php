@@ -7,7 +7,7 @@ namespace App\Parser;
 
 class CityWeatherRequestParser
 {
-    public const BODY_PATTERN = '/What is the weather like in (?P<city>[a-zA-Z].*) today\?/';
+    public const BODY_PATTERN = "/What is the weather like in (?P<city>[a-z\-' ].*) today\?/i";
 
     public function getCityFromRequest(?string $body): ?string
     {
