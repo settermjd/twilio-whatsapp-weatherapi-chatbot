@@ -11,7 +11,7 @@ To build and run the application, follow the steps below:
 - Clone the application
 - Install the required dependencies
 - Add your Weather API key as the value for `WEATHERAPI_API_KEY` to _.env_.
-  It was created during the cloning of the project.
+  It was created after running `composer install`.
 - Run the application
 
 You can do most of these by running the commands below.
