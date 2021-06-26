@@ -10,8 +10,8 @@ To build and run the application, follow the steps below:
 
 - Clone the application
 - Install the required dependencies
-- Create a .env file by copying .env.template
-- Add your Weather API key as the value for `WEATHERAPI_API_KEY`
+- Add your Weather API key as the value for `WEATHERAPI_API_KEY` to _.env_.
+  It was created during the cloning of the project.
 - Run the application
 
 You can do most of these by running the commands below.
@@ -20,8 +20,6 @@ You can do most of these by running the commands below.
 git clone https://github.com/settermjd/twilio-whatsapp-weatherapi-chatbot.git
 cd twilio-whatsapp-weatherapi-chatbot
 composer install
-cp -v .env.template .env
-# Add your Weather API key to .env
 composer serve
 ```
 
