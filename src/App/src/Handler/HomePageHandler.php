@@ -24,29 +24,24 @@ class HomePageHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $body = $request->getParsedBody()['Body'];
-        $city = $this->getCityFromRequest($body);
+        preg_match(self::BODY_PATTERN, $body, $matches);
 
-        if (!$city) {
+        if (!$matches['city']) {
             return new XmlResponse(
-                (string)$this->getErrorResponse(
-                    'Sorry, but I could not determine the city you asked for.'
-                )
+                (string)(new MessagingResponse())
+                    ->message('Sorry, but I could not determine the city you asked for.')
             );
         }
 
-        $weatherData = $this->getWeatherData($city);
+        $weatherData = $this->getWeatherData($matches['city']);
         if (property_exists($weatherData, 'error')) {
-            return new XmlResponse((string)$this->getErrorResponse($weatherData->error->message));
+            return new XmlResponse(
+                (string)(new MessagingResponse())
+                    ->message($weatherData->error->message)
+            );
         }
 
         return new XmlResponse((string)$this->getSuccessResponse($weatherData));
-    }
-
-    private function getCityFromRequest(?string $body): ?string
-    {
-        return (preg_match(self::BODY_PATTERN, $body, $matches))
-            ? $matches['city']
-            : null;
     }
 
     private function getWeatherData(string $city): object
@@ -86,14 +81,6 @@ EOF;
                 $weatherData->current->wind_dir
             )
         );
-        return $response;
-    }
-
-    private function getErrorResponse(string $message): MessagingResponse
-    {
-        $response = new MessagingResponse();
-        $response->message($message);
-
         return $response;
     }
 }
