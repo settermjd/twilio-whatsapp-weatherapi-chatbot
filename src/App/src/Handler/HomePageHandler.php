@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Handler;
 
-use App\Parser\CityWeatherRequestParser;
-use App\Response\WeatherResponse;
-use App\Service\WeatherService;
 use Laminas\Diactoros\Response\XmlResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,56 +15,21 @@ use function stream_get_contents;
 
 class HomePageHandler implements RequestHandlerInterface
 {
-    public const BASE_URI = 'https://api.weatherapi.com/v1/current.json';
-    public const BODY_PATTERN = "/What is the weather like in (?P<city>[a-z\-' ].*) today\?/i";
-
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $body = $request->getParsedBody()['Body'];
-        preg_match(self::BODY_PATTERN, $body, $matches);
+        $response = new MessagingResponse();
 
-        if (!$matches['city']) {
-            return new XmlResponse(
-                (string)(new MessagingResponse())
-                    ->message('Sorry, but I could not determine the city you asked for.')
-            );
-        }
-
-        $weatherData = $this->getWeatherData($matches['city']);
+        $weatherData = $this->getWeatherData($body);
         if (property_exists($weatherData, 'error')) {
             return new XmlResponse(
-                (string)(new MessagingResponse())
-                    ->message($weatherData->error->message)
+                (string)$response->message($weatherData->error->message)
             );
         }
 
-        return new XmlResponse((string)$this->getSuccessResponse($weatherData));
-    }
-
-    private function getWeatherData(string $city): object
-    {
-        $apiKey = $_ENV['WEATHERAPI_API_KEY'];
-        $queryString = http_build_query([
-            'key' => $apiKey,
-            'q' => $city,
-            'aqi' => 'no'
-        ]);
-        $requestUri = sprintf('%s?%s', self::BASE_URI, $queryString);
-
-        $fh = fopen($requestUri, 'rb');
-        $weatherData = json_decode(stream_get_contents($fh));
-        fclose($fh);
-
-        return $weatherData;
-    }
-
-    private function getSuccessResponse(object $weatherData): MessagingResponse
-    {
         $responseString = <<<EOF
-In %s (%s, %s), today, it's %d degrees celsius, but feels like %d, with a humidity of %d percent.
-The wind is currently %d kp/h from the %s.
+In %s (%s, %s), today, it's %d degrees celsius, but feels like %d, with a humidity of %d percent. The wind is currently %d km/h from the %s.
 EOF;
-        $response = new MessagingResponse();
         $response->message(
             sprintf(
                 $responseString,
@@ -81,6 +43,28 @@ EOF;
                 $weatherData->current->wind_dir
             )
         );
-        return $response;
+
+        return new XmlResponse((string)$response);
     }
+
+    private function getWeatherData(string $city): object
+    {
+        $queryString = http_build_query([
+            'key' => $_ENV['WEATHERAPI_API_KEY'],
+            'q' => $city,
+            'aqi' => 'no'
+        ]);
+        $requestUri = sprintf(
+            '%s?%s',
+            'https://api.weatherapi.com/v1/current.json',
+            $queryString
+        );
+
+        $fh = fopen($requestUri, 'rb');
+        $weatherData = json_decode(stream_get_contents($fh));
+        fclose($fh);
+
+        return $weatherData;
+    }
+
 }
